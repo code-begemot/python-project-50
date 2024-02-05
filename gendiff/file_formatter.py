@@ -52,23 +52,6 @@ def plain_format(value, replacer=' ', spacesCount=4):
         return '\n'.join(new_lines)
     return iter_(value, '')
 
-def stylish_format(value, replacer=' ', spacesCount=4):
-    def iter_(current_value, depth):
-        lines = []
-        current_indent = depth * replacer
-        if not isinstance(current_value, dict):
-            return str(current_value)
-        deep_indent_size = depth + spacesCount
-        deep_indent = deep_indent_size * replacer
-        for i in current_value.items():
-            key, val = i
-            if key[1] == ' ':
-                lines.append(f'{deep_indent[:-2]}{key}: {iter_(val, deep_indent_size)}')
-            else:
-                lines.append(f'{deep_indent}{key}: {iter_(val, deep_indent_size)}')
-        return '\n'.join(itertools.chain("{", lines, [current_indent + "}"]))
-    return iter_(value, 0)
-
 
 def json_format(value, replacer = ' ', spacesCount = 4):
     result = json.dumps(value)
