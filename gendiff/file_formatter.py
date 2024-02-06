@@ -40,7 +40,7 @@ def plain_format(value, replacer=' ', spacesCount=4):
             else:
                 deep_path = temp_key
             temp_value_before = '[complex value]' if isinstance(val, dict) else (val if val in ('true', 'false', 'null', '0') or isinstance(val, int) or isinstance(val, float) else f"'{val}'")
-            temp_value_after = '[complex value]' if isinstance(temp_val, dict) else (temp_val if temp_val in ('true', 'false', 'null', '0') or isinstance(val, int) or isinstance(val, float) else f"'{temp_val}'")
+            temp_value_after = '[complex value]' if isinstance(temp_val, dict) else (temp_val if temp_val in ('true', 'false', 'null', '0') or isinstance(temp_val, int) or isinstance(temp_val, float) else f"'{temp_val}'")
             if key[0] == '-' and f'+ {key[2:]}' in current_value:
                 new_lines.append(f"Property '{deep_path}' was updated. From {temp_value_before} to {temp_value_after}")
             elif key[0] == '-' and not f'+ {key[2:]}' in current_value:
