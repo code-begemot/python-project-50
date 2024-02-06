@@ -5,10 +5,10 @@ test:
 	poetry run pytest
 
 test-coverage:
-	poetry run pytest --cov=hexlet_code --cov-report xml
+	poetry run pytest --cov=gendiff --cov-report xml
 
 lint:
-	poetry run flake8 hexlet_python_package
+	poetry run flake8 gendiff
 
 selfcheck:
 	poetry check
