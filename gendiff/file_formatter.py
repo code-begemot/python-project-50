@@ -1,8 +1,8 @@
 import itertools
 import json
 
-def file_formatter(value, format):
-    output = eval(f'{format}_format')(value)
+def file_formatter(value, format_):
+    output = eval(f'{format_}_format')(value)
     return output
 
 
