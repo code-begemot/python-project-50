@@ -55,5 +55,5 @@ def plain_format(value, replacer=' ', spacesCount=4):
 
 def json_format(value, replacer = ' ', spacesCount = 4):
     result = json.dumps(value)
-    print(result)
+    #print(result)
     return result
