@@ -21,7 +21,8 @@ def calculate_diff(file_data1, file_data2):
                 new_dict[f'+ {k}'] = value_2
             elif value_1 == value_2:
                 new_dict[f'  {k}'] = value_1
-            elif value_1 != value_2 and isinstance(value_1, dict) and isinstance(value_2, dict):
+            elif value_1 != value_2 and isinstance(value_1, dict) \
+                    and isinstance(value_2, dict):
                 new_dict[f'  {k}'] = inner(value_1, value_2)
             else:
                 new_dict[f'- {k}'] = value_1
