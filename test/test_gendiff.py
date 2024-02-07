@@ -1,11 +1,12 @@
 from gendiff import generate_diff
 import os
-import pytest
+#import pytest
 
 
 def get_fixture_path(file_name):
     current_dir = os.path.dirname(os.path.abspath(__file__))
     return os.path.join(current_dir, 'fixtures', file_name)
+
 
 def read(file_path):
     with open(file_path, 'r') as f:
