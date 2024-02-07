@@ -62,7 +62,7 @@ def plain_format(value, replacer=' ', spacesCount=4):
                                  f" {temp_value_after}")
             elif key[0] == '-' and f'+ {key[2:]}' not in current_value:
                 new_lines.append(f"Property '{deep_path}' was removed")
-            if key[0] == '+' and not f'- {key[2:]}' not in current_value:
+            if key[0] == '+' and f'- {key[2:]}' not in current_value:
                 new_lines.append(f"Property '{deep_path}' was"
                                  f" added with value: {temp_value_before}")
             else:
