@@ -59,8 +59,11 @@ def plain_format_item(value):
         return '[complex value]'
     elif value in ('true', 'false', 'null'):
         return value
-    else:
+    elif isinstance(value, str):
         return f"'{str(value)}'"
+    else:
+        return str(value)
+        
 
 
 def plain_format(value, path=''):
