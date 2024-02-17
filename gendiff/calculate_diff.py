@@ -7,25 +7,64 @@ def check_value(value):
         return value
 
 
+def added(key, value):
+    return {
+        'key': key,
+        'type': 'added',
+        'new_value': value
+    }
+
+
+def deleted(key, value):
+    return {
+        'key': key,
+        'type': 'deleted',
+        'old_value': value
+    }
+
+
+def changed(key, old_value, new_value):
+    return {
+        'key': key,
+        'type': 'changed',
+        'old_value': old_value,
+        'new_value': new_value
+    }
+
+
+def unchanged(key, value):
+    return {
+        'key': key,
+        'type': 'unchanged',
+        'value': value
+    }
+
+
+def nested(key, value_1, value_2):
+    return {
+        'key': key,
+        'type': 'nested',
+        'children': calculate_diff(value_1, value_2)
+    }
+
+
 def calculate_diff(file_data1, file_data2):
-    def inner(current_data1, current_data2):
-        new_dict = {}
-        all_keys = set(current_data1.keys() | current_data2.keys())
-        list_keys = sorted(list(all_keys))
-        for k in list_keys:
-            value_1 = check_value(current_data1.get(k, 'absent'))
-            value_2 = check_value(current_data2.get(k, 'absent'))
-            if value_2 == 'absent':
-                new_dict[f'- {k}'] = value_1
-            elif value_1 == 'absent':
-                new_dict[f'+ {k}'] = value_2
-            elif value_1 == value_2:
-                new_dict[f'  {k}'] = value_1
-            elif value_1 != value_2 and isinstance(value_1, dict) \
-                    and isinstance(value_2, dict):
-                new_dict[f'  {k}'] = inner(value_1, value_2)
-            else:
-                new_dict[f'- {k}'] = value_1
-                new_dict[f'+ {k}'] = value_2
-        return new_dict
-    return inner(file_data1, file_data2)
+    diff_list = []
+    all_keys = file_data1.keys() | file_data2.keys()
+    added_keys = file_data2.keys() - file_data1.keys()
+    deleted_keys = file_data1.keys() - file_data2.keys()
+    list_keys = sorted(list(all_keys))
+    for k in list_keys:
+        value_1 = check_value(file_data1.get(k))
+        value_2 = check_value(file_data2.get(k))
+        if k in added_keys:
+            diff_list.append(added(k, value_2))
+        elif k in deleted_keys:
+            diff_list.append(deleted(k, value_1))
+        elif isinstance(value_1, dict) and isinstance(value_2, dict):
+            diff_list.append(nested(k, value_1, value_2))
+        elif value_1 == value_2:
+            diff_list.append(unchanged(k, value_1))
+        else:
+            diff_list.append(changed(k, value_1, value_2))
+    return diff_list

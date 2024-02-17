@@ -2,75 +2,99 @@ import itertools
 import json
 
 
+ADD = '+ '
+DELETE = '- '
+REPLACER = ' '
+SPACESCOUNT = 4
+
+
 def file_formatter(value, format_):
     output = eval(f'{format_}_format')(value)
     return output
 
 
-def stylish_format(value, replacer=' ', spacesCount=4):
-    def iter_(current_value, depth):
-        lines = []
-        current_indent = depth * replacer
-        if not isinstance(current_value, dict):
-            return str(current_value)
-        deep_indent_size = depth + spacesCount
-        deep_indent = deep_indent_size * replacer
-        for i in current_value.items():
-            key, val = i
-            if key[1] == ' ':
-                lines.append(f'{deep_indent[:-2]}{key}: '
-                             f'{iter_(val, deep_indent_size)}')
-            else:
-                lines.append(f'{deep_indent}{key}: '
-                             f'{iter_(val, deep_indent_size)}')
-        return '\n'.join(itertools.chain("{", lines, [current_indent + "}"]))
-    return iter_(value, 0)
+def stylish_format_item(value, depth):
+    curr_indent = depth * REPLACER
+    if isinstance(value, (dict, list)):
+        deep_indent_size = depth + SPACESCOUNT
+        deep_indent = deep_indent_size * REPLACER
+        new_lines = []
+        for key, val in value.items():
+            new_value = stylish_format_item(val, deep_indent_size)
+            new_lines.append(f'{deep_indent}{key}: {str(new_value)}')
+        return '\n'.join(itertools.chain("{", new_lines, [curr_indent + "}"]))
+    return f'{str(value)}'
 
 
-def plain_format(value, replacer=' ', spacesCount=4):
-    new_lines = []
-
-    def iter_(current_value, path):
-        current_path = path
-        if not isinstance(current_value, dict):
-            return str(current_value)
-        for i in current_value.items():
-            key, val = i
-            temp_val = current_value.get(f'+ {key[2:]}')
-            temp_key = key.split(' ')[-1]
-            if current_path != '':
-                deep_path = f'{current_path}.{temp_key}'
-            else:
-                deep_path = temp_key
-            if isinstance(val, dict):
-                temp_value_before = '[complex value]'
-            elif val in ('true', 'false', 'null') \
-                    or isinstance(val, int):
-                temp_value_before = val
-            else:
-                temp_value_before = f"'{val}'"
-            if isinstance(temp_val, dict):
-                temp_value_after = '[complex value]'
-            elif temp_val in ('true', 'false', 'null') \
-                    or isinstance(temp_val, int):
-                temp_value_after = temp_val
-            else:
-                temp_value_after = f"'{temp_val}'"
-            if key[0] == '-' and f'+ {key[2:]}' in current_value:
-                new_lines.append(f"Property '{deep_path}' was updated."
-                                 f" From {temp_value_before} to"
-                                 f" {temp_value_after}")
-            elif key[0] == '-' and f'+ {key[2:]}' not in current_value:
-                new_lines.append(f"Property '{deep_path}' was removed")
-            if key[0] == '+' and f'- {key[2:]}' not in current_value:
-                new_lines.append(f"Property '{deep_path}' was"
-                                 f" added with value: {temp_value_before}")
-            else:
-                iter_(val, deep_path)
-        return '\n'.join(new_lines)
-    return iter_(value, '')
+def stylish_format(value, depth=0):
+    lines = []
+    current_indent = depth * REPLACER
+    deep_indent_size = depth + SPACESCOUNT
+    deep_indent = deep_indent_size * REPLACER
+    for i in value:
+        type_ = i['type']
+        key_ = i['key']
+        old_value = stylish_format_item(i.get('old_value'), deep_indent_size)
+        new_value = stylish_format_item(i.get('new_value'), deep_indent_size)
+        value_ = stylish_format_item(i.get('value'), depth)
+        children_ = i.get('children')
+        match type_:
+            case 'unchanged':
+                lines.append(f'{deep_indent}{key_}: {value_}')
+            case 'changed':
+                lines.append(f'{deep_indent[:-2]}{DELETE}{key_}: {old_value}')
+                lines.append(f'{deep_indent[:-2]}{ADD}{key_}: {new_value}')
+            case 'added':
+                lines.append(f'{deep_indent[:-2]}{ADD}{key_}: {new_value}')
+            case 'deleted':
+                lines.append(f'{deep_indent[:-2]}{DELETE}{key_}: {old_value}')
+            case 'nested':
+                lines.append(f'{deep_indent}{key_}: '
+                             f'{stylish_format(children_, deep_indent_size)}')
+    return '\n'.join(itertools.chain("{", lines, [current_indent + "}"]))
 
 
-def json_format(value, replacer=' ', spacesCount=4):
-    result = json.dumps(value, indent=4)
+def plain_format_item(value):
+    if isinstance(value, (list, dict)):
+        return '[complex value]'
+    elif value in ('true', 'false', 'null'):
+        return value
+    else:
+        return f"'{str(value)}'"
+
+
+def plain_format(value, path=''):
+    lines = []
+    current_path = path
+    for i in value:
+        type_ = i['type']
+        key_ = i['key']
+        old_value = plain_format_item(i.get('old_value'))
+        new_value = plain_format_item(i.get('new_value'))
+        children_ = i.get('children')
+        if current_path != '':
+            deep_path = f'{current_path}.{key_}'
+        else:
+            deep_path = key_
+
+        match type_:
+            case 'changed':
+                lines.append(f"Property '{deep_path}' was updated. "
+                             f"From {old_value} to {new_value}")
+                print(lines)
+            case 'added':
+                lines.append(f"Property '{deep_path}' was added "
+                             f"with value: {new_value}")
+                print(lines)
+            case 'deleted':
+                lines.append(f"Property '{deep_path}' was removed")
+                print(lines)
+            case 'nested':
+                lines.append(plain_format(children_, deep_path))
+                print(lines)
+    return '\n'.join(lines)
+
+
+def json_format(value):
+    result = json.dumps(value, indent=SPACESCOUNT)
     return result
