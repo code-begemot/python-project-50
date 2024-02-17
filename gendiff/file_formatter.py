@@ -63,7 +63,6 @@ def plain_format_item(value):
         return f"'{str(value)}'"
     else:
         return str(value)
-        
 
 
 def plain_format(value, path=''):
@@ -84,17 +83,13 @@ def plain_format(value, path=''):
             case 'changed':
                 lines.append(f"Property '{deep_path}' was updated. "
                              f"From {old_value} to {new_value}")
-                print(lines)
             case 'added':
                 lines.append(f"Property '{deep_path}' was added "
                              f"with value: {new_value}")
-                print(lines)
             case 'deleted':
                 lines.append(f"Property '{deep_path}' was removed")
-                print(lines)
             case 'nested':
                 lines.append(plain_format(children_, deep_path))
-                print(lines)
     return '\n'.join(lines)
 
 
